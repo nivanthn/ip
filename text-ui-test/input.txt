@@ -1,0 +1,20 @@
+add
+todo
+Buy milk
+add
+deadline
+Finish CS2030S tutorial
+2026-01-20
+add
+event
+Dinner with friends
+2026-01-21 19:00
+2026-01-21 21:00
+list
+mark
+2
+list
+unmark
+2
+list
+bye

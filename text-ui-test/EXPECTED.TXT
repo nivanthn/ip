@@ -1,7 +1,61 @@
-Hello from
- ____        _        
-|  _ \ _   _| | _____ 
-| | | | | | | |/ / _ \
-| |_| | |_| |   <  __/
-|____/ \__,_|_|\_\___|
-
+    ___________________________________
+    Hello! I'm Biscuit
+    What can I do for you?
+    These are the commands that are available: add, list, mark, unmark, bye
+    ___________________________________
+    ___________________________________
+    Which type of task would you like to add?
+    The types are: todo, event, deadline
+    Enter todo description: 
+    added: [T][ ] Buy milk
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+    Which type of task would you like to add?
+    The types are: todo, event, deadline
+    Enter deadline description: 
+    When is the deadline: 
+    added: [D][ ] Finish CS2030S tutorial (by: 2026-01-20)
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+    Which type of task would you like to add?
+    The types are: todo, event, deadline
+    Enter event description: 
+    When is the event from: 
+    When is the event until: 
+    added: [E][ ] Dinner with friends (from: 2026-01-21 19:00 to: 2026-01-21 21:00)
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+     1. [T][ ] Buy milk
+     2. [D][ ] Finish CS2030S tutorial (by: 2026-01-20)
+     3. [E][ ] Dinner with friends (from: 2026-01-21 19:00 to: 2026-01-21 21:00)
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+    Which task would you like to mark done?
+    Ok! The task below is marked done
+[D][X] Finish CS2030S tutorial (by: 2026-01-20)
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+     1. [T][ ] Buy milk
+     2. [D][X] Finish CS2030S tutorial (by: 2026-01-20)
+     3. [E][ ] Dinner with friends (from: 2026-01-21 19:00 to: 2026-01-21 21:00)
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+    Which task would you like to unmark?
+    Ok! The task below is marked undone
+[D][ ] Finish CS2030S tutorial (by: 2026-01-20)
+    ___________________________________
+    add, list, mark, unmark, bye
+    ___________________________________
+     1. [T][ ] Buy milk
+     2. [D][ ] Finish CS2030S tutorial (by: 2026-01-20)
+     3. [E][ ] Dinner with friends (from: 2026-01-21 19:00 to: 2026-01-21 21:00)
+    ___________________________________
+    add, list, mark, unmark, bye
+    Bye. Hope to see you again soon!
+    ___________________________________

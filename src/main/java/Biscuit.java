@@ -21,11 +21,17 @@ public class Biscuit {
 
         String input = sc.nextLine().trim();
 
-        while (!input.toLowerCase().equals("bye")) {
+
+        A: while (true) {
             System.out.println("    ___________________________________");
 
             try {
-                handleCommand(input, sc, arr);
+                Command cmd = Command.parse(input);
+                if(cmd == Command.BYE) {
+                    break A;
+                }
+                handleCommand(cmd, sc, arr);
+
             } catch (BiscuitException e) {
                 System.out.println("    " + e.getMessage());
             }
@@ -40,26 +46,25 @@ public class Biscuit {
         System.out.println("    ___________________________________");
     }
 
-    private static void handleCommand(String input, Scanner sc, ArrayList<Task> arr) throws BiscuitException {
-        String cmd = input.trim().toLowerCase();
+    private static void handleCommand(Command cmd, Scanner sc, ArrayList<Task> arr) throws BiscuitException {
         switch (cmd) {
-        case "list":
+        case LIST:
             list(sc, arr);
             break;
-        case "add":
+        case ADD:
             add(sc, arr);
             break;
-        case "mark":
+        case MARK:
             mark(sc, arr);
             break;
-        case "unmark":
+        case UNMARK:
             unmark(sc, arr);
             break;
-        case "delete":
+        case DELETE:
             delete(sc, arr);
             break;
         default:
-            throw new BiscuitException("Not a valid command");
+            break;
         }
     }
 

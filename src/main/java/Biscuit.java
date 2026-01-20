@@ -16,7 +16,7 @@ public class Biscuit {
         System.out.println("    ___________________________________");
         System.out.println("    Hello! I'm Biscuit");
         System.out.println("    What can I do for you?");
-        System.out.println("    These are the commands that are available: add, list, mark, unmark, bye");
+        System.out.println("    These are the commands that are available: add, list, mark, unmark, delete, bye");
         System.out.println("    ___________________________________");
 
         String input = sc.nextLine().trim();
@@ -31,7 +31,7 @@ public class Biscuit {
             }
 
             System.out.println("    ___________________________________");
-            System.out.println("    These are the commands that are available: add, list, mark, unmark, bye");
+            System.out.println("    These are the commands that are available: add, list, mark, unmark, delete, bye");
             System.out.println("    ___________________________________");
             input = sc.nextLine().trim();
         }
@@ -54,6 +54,9 @@ public class Biscuit {
             break;
         case "unmark":
             unmark(sc, arr);
+            break;
+        case "delete":
+            delete(sc, arr);
             break;
         default:
             throw new BiscuitException("Not a valid command");
@@ -145,6 +148,14 @@ public class Biscuit {
             throw new BiscuitException("Task number out of range. Enter 1 to " + arr.size() + ".");
         }
         return index;
+    }
+
+    public static void delete(Scanner sc, ArrayList<Task> arr) throws BiscuitException {
+        System.out.println("    Which task would you like to delete?");
+        int index = readValidIndex(sc, arr, "delete");
+        Task removed = arr.remove(index - 1);
+        System.out.println("    Ok! I've deleted this task:");
+        System.out.println("    " + removed);
     }
 
     private static String readNonEmptyLine(Scanner sc, String errorMessage) throws BiscuitException {

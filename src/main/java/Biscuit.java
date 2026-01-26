@@ -137,9 +137,9 @@ public class Biscuit {
     private static void addEvent(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Enter event description:");
         String description = readNonEmptyLine(scanner, "Description cannot be empty.");
-        System.out.println("    When is the event from:");
+        System.out.println("    When is the event from (YYYY-MM-DD HH:mm):");
         String from = readNonEmptyLine(scanner, "Event start time cannot be empty.");
-        System.out.println("    When is the event until:");
+        System.out.println("    When is the event until (YYYY-MM-DD HH:mm):");
         String to = readNonEmptyLine(scanner, "Event end time cannot be empty.");
 
         LocalDateTime fromDt = parseEventDateTime(from, "event start");
@@ -148,24 +148,27 @@ public class Biscuit {
             throw new BiscuitException("Event end must be after the event start.");
         }
 
-        Event event = new Event(description, from, to);
+        Event event = new Event(description, fromDt, toDt);
         tasks.add(event);
         storage.save(tasks);
         System.out.println("    added: " + event);
     }
 
+
     private static void addDeadline(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Enter deadline description:");
         String description = readNonEmptyLine(scanner, "Description cannot be empty.");
-        System.out.println("    When is the deadline:");
-        String by = readNonEmptyLine(scanner, "Deadline date cannot be empty.");
+        System.out.println("    When is the deadline (YYYY-MM-DD):");
+        String byRaw = readNonEmptyLine(scanner, "Deadline date cannot be empty.");
 
-        validateDeadlineDate(by);
+        LocalDate by = parseDeadlineDate(byRaw);
+
         Deadline deadline = new Deadline(description, by);
         tasks.add(deadline);
         storage.save(tasks);
         System.out.println("    added: " + deadline);
     }
+
 
     private static void listTasks(List<Task> tasks) {
         if (tasks.isEmpty()) {
@@ -238,13 +241,14 @@ public class Biscuit {
         return line.trim();
     }
 
-    private static void validateDeadlineDate(String by) throws BiscuitException {
+    private static LocalDate parseDeadlineDate(String raw) throws BiscuitException {
         try {
-            LocalDate.parse(by.trim(), DEADLINE_FMT);
+            return LocalDate.parse(raw.trim(), DEADLINE_FMT);
         } catch (DateTimeParseException e) {
             throw new BiscuitException("Invalid deadline date. Use YYYY-MM-DD (e.g., 2026-01-20).");
         }
     }
+
 
     private static LocalDateTime parseEventDateTime(String raw, String fieldName) throws BiscuitException {
         try {

@@ -5,6 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +17,8 @@ import java.util.List;
 public class Storage {
 
     private static final Path DATA_PATH = Paths.get("data", "biscuit.txt");
+    private static final DateTimeFormatter DEADLINE_STORE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter EVENT_STORE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
      * Loads tasks from disk.
@@ -73,7 +78,7 @@ public class Storage {
 
         String type = parts[0];
         boolean isDone = parseDoneFlag(parts[1], line);
-        String description = unescape(parts[2]);
+        String description = parts[2].trim();
 
         Task task;
         switch (type) {
@@ -84,13 +89,16 @@ public class Storage {
             if (parts.length < 4) {
                 throw new BiscuitException("Corrupted deadline line: " + line);
             }
-            task = new Deadline(description, unescape(parts[3]));
+            LocalDate by = LocalDate.parse(parts[3].trim(), DEADLINE_STORE_FMT);
+            task = new Deadline(description, by);
             break;
         case "E":
             if (parts.length < 5) {
                 throw new BiscuitException("Corrupted event line: " + line);
             }
-            task = new Event(description, unescape(parts[3]), unescape(parts[4]));
+            LocalDateTime from = LocalDateTime.parse(parts[3].trim(), EVENT_STORE_FMT);
+            LocalDateTime to = LocalDateTime.parse(parts[4].trim(), EVENT_STORE_FMT);
+            task = new Event(description, from, to);
             break;
         default:
             throw new BiscuitException("Unknown task type in data: " + type);
@@ -114,80 +122,20 @@ public class Storage {
 
     private static String serializeTask(Task task) throws BiscuitException {
         String done = task.isDone() ? "1" : "0";
-        String description = escape(task.getDescription());
+        String description = task.getDescription();
 
         if (task instanceof Todo) {
             return String.join("\t", "T", done, description);
         }
         if (task instanceof Deadline) {
             Deadline d = (Deadline) task;
-            return String.join("\t", "D", done, description, escape(d.getBy()));
+            return String.join("\t", "D", done, description, d.getBy().format(DEADLINE_STORE_FMT));
         }
         if (task instanceof Event) {
             Event e = (Event) task;
-            return String.join("\t", "E", done, description, escape(e.getFrom()), escape(e.getTo()));
+            return String.join("\t", "E", done, description, e.getFrom().format(DEADLINE_STORE_FMT), e.getTo().format(EVENT_STORE_FMT));
         }
 
         throw new BiscuitException("Unsupported task type: " + task.getClass().getSimpleName());
-    }
-
-    private static String escape(String s) {
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            switch (c) {
-            case '\\':
-                out.append("\\\\");
-                break;
-            case '\t':
-                out.append("\\t");
-                break;
-            case '\n':
-                out.append("\\n");
-                break;
-            case '\r':
-                out.append("\\r");
-                break;
-            default:
-                out.append(c);
-                break;
-            }
-        }
-        return out.toString();
-    }
-
-    private static String unescape(String s) throws BiscuitException {
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < s.length(); i++) {
-            char c = s.charAt(i);
-            if (c != '\\') {
-                out.append(c);
-                continue;
-            }
-
-            if (i + 1 >= s.length()) {
-                throw new BiscuitException("Invalid escape sequence in data: " + s);
-            }
-
-            char next = s.charAt(i + 1);
-            switch (next) {
-            case '\\':
-                out.append('\\');
-                break;
-            case 't':
-                out.append('\t');
-                break;
-            case 'n':
-                out.append('\n');
-                break;
-            case 'r':
-                out.append('\r');
-                break;
-            default:
-                throw new BiscuitException("Invalid escape sequence in data: \\" + next);
-            }
-            i++;
-        }
-        return out.toString();
     }
 }

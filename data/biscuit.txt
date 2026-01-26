@@ -1,6 +1,0 @@
-T	1	read book
-D	0	return book	 2026-02-06
-E	0	project meeting	 2026-08-06 14:00	 2026-08-06 16:00
-T	0	join sports club
-E	1	flight to Tokyo	 2026-03-01 09:30	 2026-03-01 18:10
-T	0	Hi

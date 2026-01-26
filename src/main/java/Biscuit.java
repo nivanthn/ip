@@ -1,174 +1,219 @@
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.time.format.DateTimeParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * Runs the Biscuit command-line application.
+ */
 public class Biscuit {
 
     private static final DateTimeFormatter DEADLINE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter EVENT_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+    private static final String HORIZONTAL_LINE = "    ___________________________________";
+    private static final String COMMANDS_PROMPT =
+            "    These are the commands that are available: add, list, mark, unmark, delete, bye";
+
+    /**
+     * Starts the Biscuit application.
+     *
+     * @param args Command-line arguments (unused).
+     */
     public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            List<Task> tasks = new ArrayList<>();
 
-        Scanner sc = new Scanner(System.in);
-        ArrayList<Task> arr = new ArrayList<>();
+            printWelcome();
 
-        System.out.println("    ___________________________________");
-        System.out.println("    Hello! I'm Biscuit");
-        System.out.println("    What can I do for you?");
-        System.out.println("    These are the commands that are available: add, list, mark, unmark, delete, bye");
-        System.out.println("    ___________________________________");
+            String input = scanner.nextLine().trim();
+            while (true) {
+                printLine();
 
-        String input = sc.nextLine().trim();
+                try {
+                    Command command = Command.parse(input);
+                    if (command == Command.BYE) {
+                        break;
+                    }
 
-
-        A: while (true) {
-            System.out.println("    ___________________________________");
-
-            try {
-                Command cmd = Command.parse(input);
-                if(cmd == Command.BYE) {
-                    break A;
+                    handleCommand(command, scanner, tasks);
+                } catch (BiscuitException e) {
+                    System.out.println("    " + e.getMessage());
                 }
-                handleCommand(cmd, sc, arr);
 
-            } catch (BiscuitException e) {
-                System.out.println("    " + e.getMessage());
+                printLine();
+                printPrompt();
+                input = scanner.nextLine().trim();
             }
 
-            System.out.println("    ___________________________________");
-            System.out.println("    These are the commands that are available: add, list, mark, unmark, delete, bye");
-            System.out.println("    ___________________________________");
-            input = sc.nextLine().trim();
+            System.out.println("    Bye. Hope to see you again soon!");
+            printLine();
         }
-
-        System.out.println("    Bye. Hope to see you again soon!");
-        System.out.println("    ___________________________________");
     }
 
-    private static void handleCommand(Command cmd, Scanner sc, ArrayList<Task> arr) throws BiscuitException {
-        switch (cmd) {
+    private static void printWelcome() {
+        printLine();
+        System.out.println("    Hello! I'm Biscuit");
+        System.out.println("    What can I do for you?");
+        printPrompt();
+        printLine();
+    }
+
+    private static void printPrompt() {
+        System.out.println(COMMANDS_PROMPT);
+    }
+
+    private static void printLine() {
+        System.out.println(HORIZONTAL_LINE);
+    }
+
+    private static void handleCommand(Command command, Scanner scanner, List<Task> tasks)
+            throws BiscuitException {
+        switch (command) {
         case LIST:
-            list(sc, arr);
+            listTasks(tasks);
             break;
         case ADD:
-            add(sc, arr);
+            addTask(scanner, tasks);
             break;
         case MARK:
-            mark(sc, arr);
+            markTask(scanner, tasks);
             break;
         case UNMARK:
-            unmark(sc, arr);
+            unmarkTask(scanner, tasks);
             break;
         case DELETE:
-            delete(sc, arr);
+            deleteTask(scanner, tasks);
             break;
         default:
             break;
         }
     }
 
-    public static void add(Scanner sc, ArrayList<Task> arr) throws BiscuitException {
+    private static void addTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
         System.out.println("    Which type of task would you like to add?");
         System.out.println("    The types are: todo, event, deadline");
-        String type = sc.nextLine().trim().toLowerCase();
-        if (type.equals("todo")) {
-            System.out.println("    Enter todo description: ");
-            String description = readNonEmptyLine(sc, "Description cannot be empty.");
-            Todo todo = new Todo(description);
-            arr.add(todo);
-            System.out.println("    added: " + todo);
-        
-        } else if (type.equals("event")) {
-            System.out.println("    Enter event description: ");
-            String description = readNonEmptyLine(sc, "Description cannot be empty.");
-            System.out.println("    When is the event from: ");
-            String from = readNonEmptyLine(sc, "Event start time cannot be empty.");
-            System.out.println("    When is the event until: ");
-            String to = readNonEmptyLine(sc, "Event end time cannot be empty.");
 
-            LocalDateTime fromDt = parseEventDateTime(from, "event start");
-            LocalDateTime toDt = parseEventDateTime(to, "event end");
-            if (toDt.isBefore(fromDt)) {
-                throw new BiscuitException("Event end must be after the event start.");
-            }
-
-            Event event = new Event(description, from, to);
-            System.out.println("    added: " + event);
-            arr.add(event);
-
-        } else if (type.equals("deadline")) {
-            System.out.println("    Enter deadline description: ");
-            String description = readNonEmptyLine(sc, "Description cannot be empty.");
-            System.out.println("    When is the deadline: ");
-            String by = readNonEmptyLine(sc, "Deadline date cannot be empty.");
-            validateDeadlineDate(by);
-            Deadline deadline = new Deadline(description, by);
-            arr.add(deadline);
-            System.out.println("    added: " + deadline);
-
-        } else {
+        String type = scanner.nextLine().trim().toLowerCase();
+        switch (type) {
+        case "todo":
+            addTodo(scanner, tasks);
+            break;
+        case "event":
+            addEvent(scanner, tasks);
+            break;
+        case "deadline":
+            addDeadline(scanner, tasks);
+            break;
+        default:
             throw new BiscuitException("Not a valid task type. Use: todo, event, deadline");
         }
     }
 
-    public static void list(Scanner sc, ArrayList<Task> arr) {
-        for (int i = 0; i < arr.size(); i++) {
-            System.out.println("     " + (i+1) + ". " + arr.get(i));
+    private static void addTodo(Scanner scanner, List<Task> tasks) throws BiscuitException {
+        System.out.println("    Enter todo description:");
+        String description = readNonEmptyLine(scanner, "Description cannot be empty.");
+
+        Todo todo = new Todo(description);
+        tasks.add(todo);
+        System.out.println("    added: " + todo);
+    }
+
+    private static void addEvent(Scanner scanner, List<Task> tasks) throws BiscuitException {
+        System.out.println("    Enter event description:");
+        String description = readNonEmptyLine(scanner, "Description cannot be empty.");
+        System.out.println("    When is the event from:");
+        String from = readNonEmptyLine(scanner, "Event start time cannot be empty.");
+        System.out.println("    When is the event until:");
+        String to = readNonEmptyLine(scanner, "Event end time cannot be empty.");
+
+        LocalDateTime fromDt = parseEventDateTime(from, "event start");
+        LocalDateTime toDt = parseEventDateTime(to, "event end");
+        if (toDt.isBefore(fromDt)) {
+            throw new BiscuitException("Event end must be after the event start.");
+        }
+
+        Event event = new Event(description, from, to);
+        tasks.add(event);
+        System.out.println("    added: " + event);
+    }
+
+    private static void addDeadline(Scanner scanner, List<Task> tasks) throws BiscuitException {
+        System.out.println("    Enter deadline description:");
+        String description = readNonEmptyLine(scanner, "Description cannot be empty.");
+        System.out.println("    When is the deadline:");
+        String by = readNonEmptyLine(scanner, "Deadline date cannot be empty.");
+
+        validateDeadlineDate(by);
+        Deadline deadline = new Deadline(description, by);
+        tasks.add(deadline);
+        System.out.println("    added: " + deadline);
+    }
+
+    private static void listTasks(List<Task> tasks) {
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println("     " + (i + 1) + ". " + tasks.get(i));
         }
     }
 
-    public static void mark(Scanner sc, ArrayList<Task> arr) throws BiscuitException {
+    private static void markTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
         System.out.println("    Which task would you like to mark done?");
-        int index = readValidIndex(sc, arr, "mark");
-        Task task = arr.get(index - 1);
+        int index = readValidIndex(scanner, tasks, "mark");
+
+        Task task = tasks.get(index - 1);
         task.mark();
         System.out.println("    Ok! The task below is marked done");
         System.out.println(task);
     }
 
-    public static void unmark(Scanner sc, ArrayList<Task> arr) throws BiscuitException {
+    private static void unmarkTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
         System.out.println("    Which task would you like to unmark?");
-        int index = readValidIndex(sc, arr, "unmark");
-        Task task = arr.get(index - 1);
+        int index = readValidIndex(scanner, tasks, "unmark");
+
+        Task task = tasks.get(index - 1);
         task.unmark();
         System.out.println("    Ok! The task below is marked undone");
         System.out.println(task);
     }
 
-        private static int readValidIndex(Scanner sc, ArrayList<Task> arr, String action) throws BiscuitException {
-        if (arr.isEmpty()) {
-            throw new BiscuitException("No tasks to " + action + " yet.");
-        }
-
-        String raw = sc.nextLine().trim();
-        int index;
-        try {
-            index = Integer.parseInt(raw);
-        } catch (NumberFormatException e) {
-            throw new BiscuitException("Please enter a task number (1 to " + arr.size() + ").");
-        }
-
-        if (index < 1 || index > arr.size()) {
-            throw new BiscuitException("Task number out of range. Enter 1 to " + arr.size() + ".");
-        }
-        return index;
-    }
-
-    public static void delete(Scanner sc, ArrayList<Task> arr) throws BiscuitException {
+    private static void deleteTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
         System.out.println("    Which task would you like to delete?");
-        int index = readValidIndex(sc, arr, "delete");
-        Task removed = arr.remove(index - 1);
+        int index = readValidIndex(scanner, tasks, "delete");
+
+        Task removed = tasks.remove(index - 1);
         System.out.println("    Ok! I've deleted this task:");
         System.out.println("    " + removed);
     }
 
-    private static String readNonEmptyLine(Scanner sc, String errorMessage) throws BiscuitException {
-        String s = sc.nextLine();
-        if (s == null || s.trim().isEmpty()) {
+    private static int readValidIndex(Scanner scanner, List<Task> tasks, String action)
+            throws BiscuitException {
+        if (tasks.isEmpty()) {
+            throw new BiscuitException("No tasks to " + action + " yet.");
+        }
+
+        String raw = scanner.nextLine().trim();
+        int index;
+        try {
+            index = Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            throw new BiscuitException("Please enter a task number (1 to " + tasks.size() + ").");
+        }
+
+        if (index < 1 || index > tasks.size()) {
+            throw new BiscuitException("Task number out of range. Enter 1 to " + tasks.size() + ".");
+        }
+        return index;
+    }
+
+    private static String readNonEmptyLine(Scanner scanner, String errorMessage) throws BiscuitException {
+        String line = scanner.nextLine();
+        if (line == null || line.trim().isEmpty()) {
             throw new BiscuitException(errorMessage);
         }
-        return s.trim();
+        return line.trim();
     }
 
     private static void validateDeadlineDate(String by) throws BiscuitException {
@@ -184,9 +229,7 @@ public class Biscuit {
             return LocalDateTime.parse(raw.trim(), EVENT_FMT);
         } catch (DateTimeParseException e) {
             throw new BiscuitException(
-                "Invalid " + fieldName + " format. Use YYYY-MM-DD HH:mm (e.g., 2026-01-21 19:00)."
-            );
+                    "Invalid " + fieldName + " format. Use YYYY-MM-DD HH:mm (e.g., 2026-01-21 19:00).");
         }
     }
-
 }

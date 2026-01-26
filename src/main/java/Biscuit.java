@@ -25,7 +25,8 @@ public class Biscuit {
      */
     public static void main(String[] args) {
         try (Scanner scanner = new Scanner(System.in)) {
-            List<Task> tasks = new ArrayList<>();
+            Storage storage = new Storage();
+            List<Task> tasks = loadTasks(storage);
 
             printWelcome();
 
@@ -39,7 +40,7 @@ public class Biscuit {
                         break;
                     }
 
-                    handleCommand(command, scanner, tasks);
+                    handleCommand(command, scanner, tasks, storage);
                 } catch (BiscuitException e) {
                     System.out.println("    " + e.getMessage());
                 }
@@ -51,6 +52,16 @@ public class Biscuit {
 
             System.out.println("    Bye. Hope to see you again soon!");
             printLine();
+        }
+    }
+
+    private static List<Task> loadTasks(Storage storage) {
+        try {
+            return storage.load();
+        } catch (BiscuitException e) {
+            System.out.println("    " + e.getMessage());
+            System.out.println("    Starting with an empty task list.");
+            return new ArrayList<>();
         }
     }
 
@@ -70,59 +81,60 @@ public class Biscuit {
         System.out.println(HORIZONTAL_LINE);
     }
 
-    private static void handleCommand(Command command, Scanner scanner, List<Task> tasks)
+    private static void handleCommand(Command command, Scanner scanner, List<Task> tasks, Storage storage)
             throws BiscuitException {
         switch (command) {
         case LIST:
             listTasks(tasks);
             break;
         case ADD:
-            addTask(scanner, tasks);
+            addTask(scanner, tasks, storage);
             break;
         case MARK:
-            markTask(scanner, tasks);
+            markTask(scanner, tasks, storage);
             break;
         case UNMARK:
-            unmarkTask(scanner, tasks);
+            unmarkTask(scanner, tasks, storage);
             break;
         case DELETE:
-            deleteTask(scanner, tasks);
+            deleteTask(scanner, tasks, storage);
             break;
         default:
             break;
         }
     }
 
-    private static void addTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void addTask(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Which type of task would you like to add?");
         System.out.println("    The types are: todo, event, deadline");
 
         String type = scanner.nextLine().trim().toLowerCase();
         switch (type) {
         case "todo":
-            addTodo(scanner, tasks);
+            addTodo(scanner, tasks, storage);
             break;
         case "event":
-            addEvent(scanner, tasks);
+            addEvent(scanner, tasks, storage);
             break;
         case "deadline":
-            addDeadline(scanner, tasks);
+            addDeadline(scanner, tasks, storage);
             break;
         default:
             throw new BiscuitException("Not a valid task type. Use: todo, event, deadline");
         }
     }
 
-    private static void addTodo(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void addTodo(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Enter todo description:");
         String description = readNonEmptyLine(scanner, "Description cannot be empty.");
 
         Todo todo = new Todo(description);
         tasks.add(todo);
+        storage.save(tasks);
         System.out.println("    added: " + todo);
     }
 
-    private static void addEvent(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void addEvent(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Enter event description:");
         String description = readNonEmptyLine(scanner, "Description cannot be empty.");
         System.out.println("    When is the event from:");
@@ -138,10 +150,11 @@ public class Biscuit {
 
         Event event = new Event(description, from, to);
         tasks.add(event);
+        storage.save(tasks);
         System.out.println("    added: " + event);
     }
 
-    private static void addDeadline(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void addDeadline(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Enter deadline description:");
         String description = readNonEmptyLine(scanner, "Description cannot be empty.");
         System.out.println("    When is the deadline:");
@@ -150,40 +163,49 @@ public class Biscuit {
         validateDeadlineDate(by);
         Deadline deadline = new Deadline(description, by);
         tasks.add(deadline);
+        storage.save(tasks);
         System.out.println("    added: " + deadline);
     }
 
     private static void listTasks(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("    No tasks yet.");
+            return;
+        }
+
         for (int i = 0; i < tasks.size(); i++) {
             System.out.println("     " + (i + 1) + ". " + tasks.get(i));
         }
     }
 
-    private static void markTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void markTask(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Which task would you like to mark done?");
         int index = readValidIndex(scanner, tasks, "mark");
 
         Task task = tasks.get(index - 1);
         task.mark();
+        storage.save(tasks);
         System.out.println("    Ok! The task below is marked done");
         System.out.println(task);
     }
 
-    private static void unmarkTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void unmarkTask(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Which task would you like to unmark?");
         int index = readValidIndex(scanner, tasks, "unmark");
 
         Task task = tasks.get(index - 1);
         task.unmark();
+        storage.save(tasks);
         System.out.println("    Ok! The task below is marked undone");
         System.out.println(task);
     }
 
-    private static void deleteTask(Scanner scanner, List<Task> tasks) throws BiscuitException {
+    private static void deleteTask(Scanner scanner, List<Task> tasks, Storage storage) throws BiscuitException {
         System.out.println("    Which task would you like to delete?");
         int index = readValidIndex(scanner, tasks, "delete");
 
         Task removed = tasks.remove(index - 1);
+        storage.save(tasks);
         System.out.println("    Ok! I've deleted this task:");
         System.out.println("    " + removed);
     }

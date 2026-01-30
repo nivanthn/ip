@@ -80,26 +80,26 @@ public class Storage {
 
         Task task;
         switch (type) {
-        case "T":
-            task = new Todo(description);
-            break;
-        case "D":
-            if (parts.length < 4) {
-                throw new BiscuitException("Corrupted deadline line: " + line);
-            }
-            LocalDate by = LocalDate.parse(parts[3].trim(), DEADLINE_STORE_FMT);
-            task = new Deadline(description, by);
-            break;
-        case "E":
-            if (parts.length < 5) {
-                throw new BiscuitException("Corrupted event line: " + line);
-            }
-            LocalDateTime from = LocalDateTime.parse(parts[3].trim(), EVENT_STORE_FMT);
-            LocalDateTime to = LocalDateTime.parse(parts[4].trim(), EVENT_STORE_FMT);
-            task = new Event(description, from, to);
-            break;
-        default:
-            throw new BiscuitException("Unknown task type in data: " + type);
+            case "T":
+                task = new Todo(description);
+                break;
+            case "D":
+                if (parts.length < 4) {
+                    throw new BiscuitException("Corrupted deadline line: " + line);
+                }
+                LocalDate by = LocalDate.parse(parts[3].trim(), DEADLINE_STORE_FMT);
+                task = new Deadline(description, by);
+                break;
+            case "E":
+                if (parts.length < 5) {
+                    throw new BiscuitException("Corrupted event line: " + line);
+                }
+                LocalDateTime from = LocalDateTime.parse(parts[3].trim(), EVENT_STORE_FMT);
+                LocalDateTime to = LocalDateTime.parse(parts[4].trim(), EVENT_STORE_FMT);
+                task = new Event(description, from, to);
+                break;
+            default:
+                throw new BiscuitException("Unknown task type in data: " + type);
         }
 
         if (isDone) {
@@ -131,7 +131,8 @@ public class Storage {
         }
         if (task instanceof Event) {
             Event e = (Event) task;
-            return String.join("\t", "E", done, description, e.getFrom().format(EVENT_STORE_FMT), e.getTo().format(EVENT_STORE_FMT));
+            return String.join("\t", "E", done, description, e.getFrom().format(EVENT_STORE_FMT),
+                    e.getTo().format(EVENT_STORE_FMT));
         }
 
         throw new BiscuitException("Unsupported task type: " + task.getClass().getSimpleName());

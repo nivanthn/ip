@@ -7,7 +7,6 @@ package biscuit;
  * wrong date/time format, etc.).
  */
 public class BiscuitException extends Exception {
-    
     /**
      * Creates a {@code BiscuitException} with the given message.
      *

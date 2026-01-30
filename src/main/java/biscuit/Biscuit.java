@@ -5,7 +5,11 @@ import java.time.LocalDateTime;
 import java.util.Scanner;
 
 /**
- * Runs the Biscuit command-line application.
+ * Entry point of the Biscuit chatbot.
+ * <p>
+ * Coordinates user interaction ({@link Ui}), command interpretation
+ * ({@link Parser}),
+ * persistence ({@link Storage}), and task operations ({@link TaskList}).
  */
 public class Biscuit {
 
@@ -13,6 +17,12 @@ public class Biscuit {
     private TaskList tasks;
     private Ui ui;
 
+    /**
+     * Constructs a Biscuit instance and initializes its dependencies.
+     * <p>
+     * Loads tasks from disk using {@link Storage}. If loading fails, starts with an
+     * empty task list.
+     */
     public Biscuit() {
         ui = new Ui();
         storage = new Storage();
@@ -29,7 +39,10 @@ public class Biscuit {
     }
 
     /**
-     * Starts the Biscuit application.
+     * Runs the main read-eval-print loop of the chatbot until the user exits.
+     * <p>
+     * Reads user commands, executes the corresponding actions, and persists changes
+     * to disk.
      */
     public void run() {
         ui.showWelcome();
@@ -64,6 +77,14 @@ public class Biscuit {
         new Biscuit().run();
     }
 
+    /**
+     * Dispatches a parsed command to the corresponding handler method.
+     *
+     * @param command The parsed command type.
+     * @param scanner Scanner used to read additional user input.
+     * @throws BiscuitException If the command cannot be executed due to invalid
+     *                          user input.
+     */
     private void handleCommand(Command command, Scanner scanner) throws BiscuitException {
         switch (command) {
         case LIST:
@@ -96,6 +117,14 @@ public class Biscuit {
         }
     }
 
+    /**
+     * Prompts the user for a task type and delegates to the corresponding
+     * add-method.
+     *
+     * @param scanner Scanner used to read user input.
+     * @throws BiscuitException If the user provides an invalid task type or invalid
+     *                          task fields.
+     */
     private void addTask(Scanner scanner) throws BiscuitException {
         System.out.println("    Which type of task would you like to add?");
         System.out.println("    The types are: todo, event, deadline");

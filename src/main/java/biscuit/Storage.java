@@ -14,7 +14,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Reads and writes the task list to disk.
+ * Persists tasks to disk and loads them back into memory.
+ * <p>
+ * File format (tab-separated):
+ * <ul>
+ * <li>{@code T    <done>    <description>}</li>
+ * <li>{@code D    <done>    <description>    <by(yyyy-MM-dd)>}</li>
+ * <li>{@code E    <done>    <description>    <from(yyyy-MM-dd HH:mm)>    <to(yyyy-MM-dd HH:mm)>}</li>
+ * </ul>
+ * where {@code <done>} is {@code 0} or {@code 1}.
  */
 public class Storage {
 
@@ -52,7 +60,7 @@ public class Storage {
     }
 
     /**
-     * Saves tasks to disk. Creates the data folder if needed.
+     * Saves all tasks to disk, overwriting the existing file content.
      *
      * @param tasks Tasks to save.
      * @throws BiscuitException If the data file cannot be written.
@@ -68,6 +76,14 @@ public class Storage {
         }
     }
 
+    /**
+     * Parses a single serialized task line from the data file.
+     *
+     * @param line A single line from the data file (tab-separated).
+     * @return The reconstructed {@link Task}.
+     * @throws BiscuitException If the line cannot be parsed or contains an unknown
+     *                          type.
+     */
     private static Task parseLine(String line) throws BiscuitException {
         String[] parts = line.split("\t", -1);
         if (parts.length < 3) {
@@ -108,6 +124,14 @@ public class Storage {
         return task;
     }
 
+    /**
+     * Parses the done flag field (0/1).
+     *
+     * @param raw  Done flag string.
+     * @param line Original data line (used for error reporting).
+     * @return {@code true} if done flag is 1, otherwise {@code false}.
+     * @throws BiscuitException If the done flag is not 0 or 1.
+     */
     private static boolean parseDoneFlag(String raw, String line) throws BiscuitException {
         if (raw.equals("1")) {
             return true;
@@ -118,6 +142,13 @@ public class Storage {
         throw new BiscuitException("Invalid done flag in data line: " + line);
     }
 
+    /**
+     * Serializes a task into a single tab-separated line for saving to disk.
+     *
+     * @param task Task to serialize.
+     * @return Serialized line representation of the task.
+     * @throws BiscuitException If the task type is unsupported.
+     */
     private static String serializeTask(Task task) throws BiscuitException {
         String done = task.isDone() ? "1" : "0";
         String description = task.getDescription();

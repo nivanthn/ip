@@ -102,4 +102,19 @@ public class Parser {
                     "Invalid " + fieldName + " format. Use YYYY-MM-DD HH:mm (e.g., 2026-01-21 19:00).");
         }
     }
+
+    public static String parseFindKeyword(String raw) throws BiscuitException {
+        if (raw == null) {
+            throw new BiscuitException("Find command requires a keyword.");
+        }
+
+        String trimmed = raw.trim();
+        String[] parts = trimmed.split("\\s+", 2);
+
+        if (parts.length < 2 || parts[1].trim().isEmpty()) {
+            throw new BiscuitException("Find command requires a keyword.");
+        }
+
+        return parts[1].trim();
+    }
 }

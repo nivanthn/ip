@@ -38,4 +38,16 @@ public class TaskList {
     public List<Task> asList() {
         return List.copyOf(tasks);
     }
+    
+    public java.util.List<Task> find(String keyword) {
+        java.util.List<Task> matches = new java.util.ArrayList<>();
+        String needle = keyword.toLowerCase();
+
+        for (Task task : tasks) { // replace "tasks" with your internal list field name
+            if (task.getDescription().toLowerCase().contains(needle)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
 }

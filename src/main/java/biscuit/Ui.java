@@ -1,5 +1,6 @@
 package biscuit;
 
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -13,7 +14,7 @@ public class Ui {
 
     private static final String HORIZONTAL_LINE = "    ___________________________________";
     private static final String COMMANDS_PROMPT = 
-            "    These are the commands that are available: add, list, mark, unmark, delete, bye";
+            "    These are the commands that are available: add, list, mark, unmark, delete, find, bye";
 
     /**
      * Displays the welcome message and a list of available commands.
@@ -90,5 +91,22 @@ public class Ui {
     public void showDeleted(Task task) {
         System.out.println("    Ok! I've deleted this task:");
         System.out.println("    " + task);
+    }
+
+    public String readFindKeyword(java.util.Scanner scanner) {
+        System.out.println("    What keyword would you like to search for?");
+        return scanner.nextLine().trim();
+    }
+
+    public void showFindResults(java.util.List<Task> matches) {
+        if (matches.isEmpty()) {
+            System.out.println("    No matching tasks found.");
+            return;
+        }
+
+        System.out.println("     Here are the matching tasks in your list:");
+        for (int i = 0; i < matches.size(); i++) {
+            System.out.println("     " + (i + 1) + ". " + matches.get(i));
+        }
     }
 }

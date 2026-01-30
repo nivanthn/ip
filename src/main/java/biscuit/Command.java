@@ -9,6 +9,7 @@ public enum Command {
     MARK("mark"),
     UNMARK("unmark"),
     DELETE("delete"),
+    FIND("find"),
     BYE("bye");
 
     private static final String MESSAGE_INVALID_COMMAND = "Not a valid command";

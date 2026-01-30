@@ -14,6 +14,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for {@link Storage}.
+ */
 public class StorageTest {
 
     private static final Path DATA_PATH = Paths.get("data", "biscuit.txt");

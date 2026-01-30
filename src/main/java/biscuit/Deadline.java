@@ -15,7 +15,7 @@ public class Deadline extends Task {
      * Creates a {@code Deadline} task.
      *
      * @param description Description of the deadline.
-     * @param by Deadline date in {@code yyyy-MM-dd} format.
+     * @param by          Deadline date.
      */
     public Deadline(String description, LocalDate by) {
         super(description);

@@ -25,7 +25,25 @@ Reference: https://se-education.org/guides/conventions/java/intermediate.html
 - Good at proposing safe refactors that don’t change behavior (renames, visibility tightening).
 
 **What didn’t / required care:**
-- It tried to create a package but I am not doing that in this project
+- It tried to create a package but I am not doing that in this project yet
+
+**Estimated time saved:**
+- Manual cleanup estimate: ~1–2 hours.
+
+## 2026-01-30 — JavaDoc Generation
+
+**Tool used:** ChatGPT
+
+**Goal / Increment:**  
+Generate JavaDoc comments for most of the methods
+
+**What worked well:**
+- Fast detection of what the methods do and summarized it
+- Helpful at applying consistent conventions across multiple files.
+- Good at proposing changes to current comments
+
+**What didn’t / required care:**
+- Some of the comments were incorrect so had to manually check through and change it
 
 **Estimated time saved:**
 - Manual cleanup estimate: ~1–2 hours.

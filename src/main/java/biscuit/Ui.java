@@ -5,7 +5,8 @@ import java.util.Scanner;
 public class Ui {
 
     private static final String HORIZONTAL_LINE = "    ___________________________________";
-    private static final String COMMANDS_PROMPT = "    These are the commands that are available: add, list, mark, unmark, delete, bye";
+    private static final String COMMANDS_PROMPT = 
+            "    These are the commands that are available: add, list, mark, unmark, delete, bye";
 
     public void showWelcome() {
         showLine();

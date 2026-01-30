@@ -127,11 +127,13 @@ public class Storage {
         }
         if (task instanceof Deadline) {
             Deadline d = (Deadline) task;
-            return String.join("\t", "D", done, description, d.getBy().format(DEADLINE_STORE_FMT));
+            return String.join("\t", "D", done, description, 
+                    d.getBy().format(DEADLINE_STORE_FMT));
         }
         if (task instanceof Event) {
             Event e = (Event) task;
-            return String.join("\t", "E", done, description, e.getFrom().format(EVENT_STORE_FMT),
+            return String.join("\t", "E", done, description, 
+                    e.getFrom().format(EVENT_STORE_FMT),
                     e.getTo().format(EVENT_STORE_FMT));
         }
 

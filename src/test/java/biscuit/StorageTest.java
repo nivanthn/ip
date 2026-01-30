@@ -1,6 +1,9 @@
 package biscuit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -45,7 +48,7 @@ public class StorageTest {
     }
 
     @Test
-    public void load_fileDoesNotExist_returnsEmptyList() throws Exception {
+    public void loadFileDoesNotExistReturnsEmptyList() throws Exception {
         Files.deleteIfExists(DATA_PATH);
 
         Storage storage = new Storage();
@@ -56,7 +59,7 @@ public class StorageTest {
     }
 
     @Test
-    public void saveThenLoad_roundTrip_preservesTypesAndFields() throws Exception {
+    public void saveThenLoadRoundTripPreservesTypesAndFields() throws Exception {
         Storage storage = new Storage();
 
         Todo t = new Todo("read book");
@@ -99,7 +102,7 @@ public class StorageTest {
     }
 
     @Test
-    public void load_corruptedLine_throwsBiscuitException() throws Exception {
+    public void loadCorruptedLineThrowsBiscuitException() throws Exception {
         Files.createDirectories(DATA_PATH.getParent());
         // not enough fields for even a Todo
         Files.writeString(DATA_PATH, "T\t1\n", StandardCharsets.UTF_8);

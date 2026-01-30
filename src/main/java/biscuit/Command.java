@@ -15,7 +15,7 @@ public enum Command {
 
     private final String text;
 
-    Command(String text) {
+    private Command(String text) {
         this.text = text;
     }
 

@@ -69,7 +69,7 @@ public class Storage {
     }
 
     private static Task parseLine(String line) throws BiscuitException {
-        String[] parts = line.split("   ", -1);
+        String[] parts = line.split("\t", -1);
         if (parts.length < 3) {
             throw new BiscuitException("Corrupted data line: " + line);
         }
@@ -131,7 +131,7 @@ public class Storage {
         }
         if (task instanceof Event) {
             Event e = (Event) task;
-            return String.join("\t", "E", done, description, e.getFrom().format(DEADLINE_STORE_FMT), e.getTo().format(EVENT_STORE_FMT));
+            return String.join("\t", "E", done, description, e.getFrom().format(EVENT_STORE_FMT), e.getTo().format(EVENT_STORE_FMT));
         }
 
         throw new BiscuitException("Unsupported task type: " + task.getClass().getSimpleName());

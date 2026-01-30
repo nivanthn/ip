@@ -1,3 +1,5 @@
+package biscuit;
+
 /**
  * A checked exception for all user-facing errors in Biscuit.
  *

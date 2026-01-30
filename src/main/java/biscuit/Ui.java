@@ -1,3 +1,5 @@
+package biscuit;
+
 import java.util.Scanner;
 
 public class Ui {

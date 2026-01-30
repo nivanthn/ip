@@ -1,3 +1,5 @@
+package biscuit;
+
 /**
  * Represents a user command that can be executed by Biscuit.
  */

@@ -1,5 +1,6 @@
 package biscuit;
 
+import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Scanner;
@@ -45,7 +46,7 @@ public class Biscuit {
                     if (command == Command.BYE) {
                         break;
                     }
-                    handleCommand(command, scanner);
+                    handleCommand(command, input, scanner);
                 } catch (BiscuitException e) {
                     ui.showError(e.getMessage());
                 }
@@ -64,7 +65,7 @@ public class Biscuit {
         new Biscuit().run();
     }
 
-    private void handleCommand(Command command, Scanner scanner) throws BiscuitException {
+    private void handleCommand(Command command, String rawInput, Scanner scanner) throws BiscuitException {
         switch (command) {
         case LIST:
             listTasks();
@@ -80,6 +81,9 @@ public class Biscuit {
             break;
         case DELETE:
             deleteTask(scanner);
+            break;
+        case FIND:
+            findTasks(scanner);
             break;
         default:
             break;
@@ -190,5 +194,18 @@ public class Biscuit {
         Task removed = tasks.remove(index - 1);
         storage.save(tasks.asList());
         ui.showDeleted(removed);
+    }
+    
+    private void findTasks(Scanner scanner) throws BiscuitException {
+        if (tasks.isEmpty()) { // if TaskList has isEmpty(), use it; else check size
+            ui.showNoTasks();
+            return;
+        }
+
+        String keyword = ui.readFindKeyword(scanner);
+        keyword = Parser.requireNonEmpty(keyword, "Keyword cannot be empty.");
+
+        java.util.List<Task> matches = tasks.find(keyword);
+        ui.showFindResults(matches);
     }
 }

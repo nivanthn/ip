@@ -67,10 +67,6 @@ public class Storage {
     }
 
     private static Task parseLine(String line) throws BiscuitException {
-        // Format (tab-separated):
-        // T\t1\tdescription
-        // D\t0\tdescription\tby
-        // E\t0\tdescription\tfrom\tto
         String[] parts = line.split("   ", -1);
         if (parts.length < 3) {
             throw new BiscuitException("Corrupted data line: " + line);

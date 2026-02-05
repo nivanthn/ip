@@ -49,25 +49,22 @@ public class Biscuit {
         ui.showWelcome();
 
         try (Scanner scanner = new Scanner(System.in)) {
-            String input = ui.readCommand(scanner);
-
             while (true) {
                 ui.showLine();
+                String input = ui.readCommand(scanner);
 
+                String response;
                 try {
-                    Command command = Parser.parseCommand(input);
-                    if (command == Command.BYE) {
-                        break;
-                    }
-                    handleCommand(command, scanner);
+                    response = execute(input);
                 } catch (BiscuitException e) {
-                    ui.showError(e.getMessage());
+                    response = e.getMessage();
                 }
 
-                ui.showLine();
-                ui.showCommands();
-                ui.showLine();
-                input = ui.readCommand(scanner);
+                System.out.println(response);
+
+                if (isExit(input)) {
+                    break;
+                }
             }
         }
 
@@ -79,113 +76,164 @@ public class Biscuit {
     }
 
     /**
-     * Dispatches a parsed command to the corresponding handler method.
+     * Executes a single-line user command and returns the response message.
+     * <p>
+     * This is the main entry point for both the CLI and GUI. The CLI prints the
+     * returned
+     * message, while the GUI displays it in a dialog box.
      *
-     * @param command The parsed command type.
-     * @param scanner Scanner used to read additional user input.
-     * @throws BiscuitException If the command cannot be executed due to invalid
-     *                          user input.
+     * @param input Full command entered by the user.
+     * @return Response message to be shown to the user.
+     * @throws BiscuitException If the command is invalid or cannot be executed.
      */
-    private void handleCommand(Command command, Scanner scanner) throws BiscuitException {
-        switch (command) {
-        case LIST:
-            listTasks();
-            break;
-        case ADD:
-            addTask(scanner);
-            break;
-        case MARK:
-            markTask(scanner);
-            break;
-        case UNMARK:
-            unmarkTask(scanner);
-            break;
-        case DELETE:
-            deleteTask(scanner);
-            break;
-        case FIND:
-            findTasks(scanner);
-            break;
-        default:
-            break;
+    public String execute(String input) throws BiscuitException {
+        String trimmed = (input == null) ? "" : input.trim();
+        if (trimmed.isEmpty()) {
+            throw new BiscuitException("Command cannot be empty.");
         }
-    }
 
-    private void listTasks() {
-        if (tasks.isEmpty()) {
-            ui.showNoTasks();
-            return;
-        }
-        for (int i = 0; i < tasks.size(); i++) {
-            System.out.println("     " + (i + 1) + ". " + tasks.get(i));
+        String[] parts = trimmed.split("\\s+", 2);
+        String keyword = parts[0].toLowerCase();
+        String args = (parts.length == 2) ? parts[1] : "";
+
+        switch (keyword) {
+        case "list":
+            return formatList();
+
+        case "todo":
+            return handleTodo(args);
+
+        case "deadline":
+            return handleDeadline(args);
+
+        case "event":
+            return handleEvent(args);
+
+        case "mark":
+            return handleMark(args);
+
+        case "unmark":
+            return handleUnmark(args);
+
+        case "delete":
+            return handleDelete(args);
+
+        case "find":
+            return handleFind(args);
+
+        case "bye":
+            return "Bye. Hope to see you again soon!";
+        
+        case "display":
+        case "help":
+            return getHelpMessage();
+        default:
+            throw new BiscuitException("Unknown command: " + keyword);
         }
     }
 
     /**
-     * Prompts the user for a task type and delegates to the corresponding
-     * add-method.
+     * Checks whether the given user input indicates the application should exit.
      *
-     * @param scanner Scanner used to read user input.
-     * @throws BiscuitException If the user provides an invalid task type or invalid
-     *                          task fields.
+     * @param input Full command entered by the user.
+     * @return True if the command is an exit command (e.g. {@code bye}), false
+     *         otherwise.
      */
-    private void addTask(Scanner scanner) throws BiscuitException {
-        System.out.println("    Which type of task would you like to add?");
-        System.out.println("    The types are: todo, event, deadline");
-
-        String type = Parser.requireNonEmpty(ui.readCommand(scanner), "Task type cannot be empty.").toLowerCase();
-
-        switch (type) {
-        case "todo":
-            addTodo(scanner);
-            break;
-        case "event":
-            addEvent(scanner);
-            break;
-        case "deadline":
-            addDeadline(scanner);
-            break;
-        default:
-            throw new BiscuitException("Not a valid task type. Use: todo, event, deadline");
-        }
+    private boolean isExit(String input) {
+        return input != null && input.trim().equalsIgnoreCase("bye");
     }
 
-    private void addTodo(Scanner scanner) throws BiscuitException {
-        System.out.println("    Enter todo description:");
-        String description = Parser.requireNonEmpty(ui.readCommand(scanner), "Description cannot be empty.");
+    /**
+     * Formats the current task list into a printable string.
+     *
+     * @return A formatted list of tasks, or a message indicating the list is empty.
+     */
+    private String formatList() {
+        if (tasks.isEmpty()) {
+            return "No tasks yet.";
+        }
 
+        StringBuilder sb = new StringBuilder("Here are your tasks:\n");
+        for (int i = 0; i < tasks.size(); i++) {
+            sb.append("  ").append(i + 1).append(". ").append(tasks.get(i)).append("\n");
+        }
+        return sb.toString().trim();
+    }
+
+    /**
+     * Handles the {@code todo} command by creating and storing a {@link Todo} task.
+     *
+     * @param args Description text after the {@code todo} keyword.
+     * @return Confirmation message describing the added todo.
+     * @throws BiscuitException If the description is empty.
+     */
+    private String handleTodo(String args) throws BiscuitException {
+        String description = Parser.requireNonEmpty(args, "The description of a todo cannot be empty.");
         Todo todo = new Todo(description);
         tasks.add(todo);
         storage.save(tasks.asList());
-        ui.showAdded(todo);
+        return "Added: " + todo;
     }
 
-    private void addDeadline(Scanner scanner) throws BiscuitException {
-        System.out.println("    Enter deadline description:");
-        String description = Parser.requireNonEmpty(ui.readCommand(scanner), "Description cannot be empty.");
+    /**
+     * Handles the {@code deadline} command by creating and storing a
+     * {@link Deadline} task.
+     * <p>
+     * Expected format: {@code deadline <description> /by YYYY-MM-DD}
+     *
+     * @param args Arguments after the {@code deadline} keyword.
+     * @return Confirmation message describing the added deadline.
+     * @throws BiscuitException If the format is invalid or date cannot be parsed.
+     */
+    private String handleDeadline(String args) throws BiscuitException {
+        // format: deadline <desc> /by YYYY-MM-DD
+        String[] split = args.split("\\s+/by\\s+", 2);
+        if (split.length < 2) {
+            throw new BiscuitException("Usage: deadline <description> /by YYYY-MM-DD");
+        }
 
-        System.out.println("    When is the deadline (YYYY-MM-DD):");
-        String byRaw = Parser.requireNonEmpty(ui.readCommand(scanner), "Deadline date cannot be empty.");
+        String description = Parser.requireNonEmpty(split[0].trim(),
+                "The description of a deadline cannot be empty.");
+        String byRaw = Parser.requireNonEmpty(split[1].trim(),
+                "The /by date cannot be empty.");
+
         LocalDate by = Parser.parseDeadlineDate(byRaw);
-
         Deadline deadline = new Deadline(description, by);
+
         tasks.add(deadline);
         storage.save(tasks.asList());
-        ui.showAdded(deadline);
+        return "Added: " + deadline;
     }
 
-    private void addEvent(Scanner scanner) throws BiscuitException {
-        System.out.println("    Enter event description:");
-        String description = Parser.requireNonEmpty(ui.readCommand(scanner), "Description cannot be empty.");
+    /**
+     * Handles the {@code event} command by creating and storing an {@link Event}
+     * task.
+     * <p>
+     * Expected format:
+     * {@code event <description> /from YYYY-MM-DD HH:mm /to YYYY-MM-DD HH:mm}
+     *
+     * @param args Arguments after the {@code event} keyword.
+     * @return Confirmation message describing the added event.
+     * @throws BiscuitException If the format is invalid, dates cannot be parsed, or
+     *                          end is before start.
+     */
+    private String handleEvent(String args) throws BiscuitException {
+        // format: event <desc> /from YYYY-MM-DD HH:mm /to YYYY-MM-DD HH:mm
+        String[] fromSplit = args.split("\\s+/from\\s+", 2);
+        if (fromSplit.length < 2) {
+            throw new BiscuitException("Usage: event <description> /from YYYY-MM-DD HH:mm /to YYYY-MM-DD HH:mm");
+        }
 
-        System.out.println("    When is the event from (YYYY-MM-DD HH:mm):");
-        String fromRaw = Parser.requireNonEmpty(ui.readCommand(scanner), "Event start time cannot be empty.");
+        String description = Parser.requireNonEmpty(fromSplit[0].trim(),
+                "The description of an event cannot be empty.");
 
-        System.out.println("    When is the event until (YYYY-MM-DD HH:mm):");
-        String toRaw = Parser.requireNonEmpty(ui.readCommand(scanner), "Event end time cannot be empty.");
+        String[] toSplit = fromSplit[1].split("\\s+/to\\s+", 2);
+        if (toSplit.length < 2) {
+            throw new BiscuitException("Usage: event <description> /from YYYY-MM-DD HH:mm /to YYYY-MM-DD HH:mm");
+        }
 
-        LocalDateTime from = Parser.parseEventDateTime(fromRaw, "event start");
-        LocalDateTime to = Parser.parseEventDateTime(toRaw, "event end");
+        LocalDateTime from = Parser.parseEventDateTime(toSplit[0].trim(), "event start");
+        LocalDateTime to = Parser.parseEventDateTime(toSplit[1].trim(), "event end");
         if (to.isBefore(from)) {
             throw new BiscuitException("Event end must be after the event start.");
         }
@@ -193,49 +241,72 @@ public class Biscuit {
         Event event = new Event(description, from, to);
         tasks.add(event);
         storage.save(tasks.asList());
-        ui.showAdded(event);
+        return "Added: " + event;
     }
 
-    private void markTask(Scanner scanner) throws BiscuitException {
-        System.out.println("    Which task would you like to mark done?");
-        int index = Parser.parseIndex(ui.readCommand(scanner), tasks, "mark");
-
+    private String handleMark(String args) throws BiscuitException {
+        int index = Parser.parseIndex(Parser.requireNonEmpty(args, "Please provide a task number."), tasks, "mark");
         Task task = tasks.get(index - 1);
         task.mark();
         storage.save(tasks.asList());
-        ui.showMarked(task);
+        return "Marked as done: " + task;
     }
 
-    private void unmarkTask(Scanner scanner) throws BiscuitException {
-        System.out.println("    Which task would you like to unmark?");
-        int index = Parser.parseIndex(ui.readCommand(scanner), tasks, "unmark");
-
+    private String handleUnmark(String args) throws BiscuitException {
+        int index = Parser.parseIndex(Parser.requireNonEmpty(args, "Please provide a task number."), tasks, "unmark");
         Task task = tasks.get(index - 1);
         task.unmark();
         storage.save(tasks.asList());
-        ui.showUnmarked(task);
+        return "Marked as not done: " + task;
     }
 
-    private void deleteTask(Scanner scanner) throws BiscuitException {
-        System.out.println("    Which task would you like to delete?");
-        int index = Parser.parseIndex(ui.readCommand(scanner), tasks, "delete");
-
+    private String handleDelete(String args) throws BiscuitException {
+        int index = Parser.parseIndex(Parser.requireNonEmpty(args, "Please provide a task number."), tasks, "delete");
         Task removed = tasks.remove(index - 1);
         storage.save(tasks.asList());
-        ui.showDeleted(removed);
+        return "Deleted: " + removed;
     }
-    
-    private void findTasks(Scanner scanner) throws BiscuitException {
-        if (tasks.isEmpty()) { // if TaskList has isEmpty(), use it; else check size
-            ui.showNoTasks();
-            return;
+
+    /**
+     * Handles the {@code find} command by searching tasks containing the given
+     * keyword.
+     *
+     * @param args Keyword text after the {@code find} keyword.
+     * @return A formatted list of matching tasks, or a message indicating no
+     *         matches were found.
+     * @throws BiscuitException If the keyword is empty.
+     */
+    private String handleFind(String args) throws BiscuitException {
+        if (tasks.isEmpty()) {
+            return "No tasks yet.";
+        }
+        String keyword = Parser.requireNonEmpty(args, "Keyword cannot be empty.");
+        List<Task> matches = tasks.find(keyword);
+
+        if (matches.isEmpty()) {
+            return "No matching tasks found for: " + keyword;
         }
 
-        String keyword = ui.readFindKeyword(scanner);
-        keyword = Parser.requireNonEmpty(keyword, "Keyword cannot be empty.");
+        StringBuilder sb = new StringBuilder("Matching tasks:\n");
+        for (int i = 0; i < matches.size(); i++) {
+            sb.append("  ").append(i + 1).append(". ").append(matches.get(i)).append("\n");
+        }
+        return sb.toString().trim();
+    }
 
-        java.util.List<Task> matches = tasks.find(keyword);
-        ui.showFindResults(matches);
+    private String getHelpMessage() {
+        return String.join("\n",
+                "Available commands:",
+                "  list",
+                "  todo <description>",
+                "  deadline <description> /by YYYY-MM-DD",
+                "  event <description> /from YYYY-MM-DD HH:mm /to YYYY-MM-DD HH:mm",
+                "  mark <taskNumber>",
+                "  unmark <taskNumber>",
+                "  delete <taskNumber>",
+                "  find <keyword>",
+                "  display   (or: help)",
+                "  bye");
     }
 
     /**
@@ -244,30 +315,7 @@ public class Biscuit {
      */
     public String getResponse(String input) {
         try {
-            String trimmed = (input == null) ? "" : input.trim();
-            if (trimmed.isEmpty()) {
-                return "Please type a command.";
-            }
-
-            Command command = Parser.parseCommand(trimmed);
-
-            switch (command) {
-                case BYE:
-                    return "Bye. Hope to see you again soon!";
-                case LIST:
-                    if (tasks.isEmpty()) {
-                        return "No tasks yet. Add one with: todo/deadline/event (CLI version).";
-                    }
-                    StringBuilder sb = new StringBuilder("Here are your tasks:\n");
-                    for (int i = 0; i < tasks.size(); i++) {
-                        sb.append("  ").append(i + 1).append(". ").append(tasks.get(i)).append("\n");
-                    }
-                    return sb.toString().trim();
-                default:
-                    return "This GUI build currently supports: list, bye.\n"
-                            + "Other commands are implemented in the CLI flow (need multi-step prompts).";
-            }
-
+            return execute(input);
         } catch (BiscuitException e) {
             return e.getMessage();
         }

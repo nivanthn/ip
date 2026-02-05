@@ -59,7 +59,7 @@ public class Biscuit {
                     if (command == Command.BYE) {
                         break;
                     }
-                    handleCommand(command, input, scanner);
+                    handleCommand(command, scanner);
                 } catch (BiscuitException e) {
                     ui.showError(e.getMessage());
                 }
@@ -237,4 +237,40 @@ public class Biscuit {
         java.util.List<Task> matches = tasks.find(keyword);
         ui.showFindResults(matches);
     }
+
+    /**
+     * Returns a response for the GUI.
+     * GUI interaction is single-line input -> single-line (or multi-line) output.
+     */
+    public String getResponse(String input) {
+        try {
+            String trimmed = (input == null) ? "" : input.trim();
+            if (trimmed.isEmpty()) {
+                return "Please type a command.";
+            }
+
+            Command command = Parser.parseCommand(trimmed);
+
+            switch (command) {
+                case BYE:
+                    return "Bye. Hope to see you again soon!";
+                case LIST:
+                    if (tasks.isEmpty()) {
+                        return "No tasks yet. Add one with: todo/deadline/event (CLI version).";
+                    }
+                    StringBuilder sb = new StringBuilder("Here are your tasks:\n");
+                    for (int i = 0; i < tasks.size(); i++) {
+                        sb.append("  ").append(i + 1).append(". ").append(tasks.get(i)).append("\n");
+                    }
+                    return sb.toString().trim();
+                default:
+                    return "This GUI build currently supports: list, bye.\n"
+                            + "Other commands are implemented in the CLI flow (need multi-step prompts).";
+            }
+
+        } catch (BiscuitException e) {
+            return e.getMessage();
+        }
+    }
+
 }

@@ -3,6 +3,7 @@ package biscuit;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import biscuit.Task;
 
 /**
  * Represents a task that needs to be done within a specific date range.

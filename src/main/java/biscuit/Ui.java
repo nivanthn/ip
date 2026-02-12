@@ -93,12 +93,12 @@ public class Ui {
         System.out.println("    " + task);
     }
 
-    public String readFindKeyword(java.util.Scanner scanner) {
+    public String readFindKeyword(Scanner scanner) {
         System.out.println("    What keyword would you like to search for?");
         return scanner.nextLine().trim();
     }
 
-    public void showFindResults(java.util.List<Task> matches) {
+    public void showFindResults(List<Task> matches) {
         if (matches.isEmpty()) {
             System.out.println("    No matching tasks found.");
             return;

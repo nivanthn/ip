@@ -97,22 +97,13 @@ public class Storage {
         Task task;
         switch (type) {
             case "T":
-                task = new Todo(description);
+                task = parseTodo(description);
                 break;
             case "D":
-                if (parts.length < 4) {
-                    throw new BiscuitException("Corrupted deadline line: " + line);
-                }
-                LocalDate by = LocalDate.parse(parts[3].trim(), DEADLINE_STORE_FMT);
-                task = new Deadline(description, by);
+                task = parseDeadline(parts, description, line);
                 break;
             case "E":
-                if (parts.length < 5) {
-                    throw new BiscuitException("Corrupted event line: " + line);
-                }
-                LocalDateTime from = LocalDateTime.parse(parts[3].trim(), EVENT_STORE_FMT);
-                LocalDateTime to = LocalDateTime.parse(parts[4].trim(), EVENT_STORE_FMT);
-                task = new Event(description, from, to);
+                task = parseEvent(parts, description, line);
                 break;
             default:
                 throw new BiscuitException("Unknown task type in data: " + type);
@@ -122,6 +113,27 @@ public class Storage {
             task.mark();
         }
         return task;
+    }
+
+    private static Task parseTodo(String description) {
+        return new Todo(description);
+    }
+
+    private static Task parseDeadline(String[] parts, String description, String line) throws BiscuitException {
+        if (parts.length < 4) {
+            throw new BiscuitException("Corrupted deadline line: " + line);
+        }
+        LocalDate by = LocalDate.parse(parts[3].trim(), DEADLINE_STORE_FMT);
+        return new Deadline(description, by);
+    }
+
+    private static Task parseEvent(String[] parts, String description, String line) throws BiscuitException {
+        if (parts.length < 5) {
+            throw new BiscuitException("Corrupted event line: " + line);
+        }
+        LocalDateTime from = LocalDateTime.parse(parts[3].trim(), EVENT_STORE_FMT);
+        LocalDateTime to = LocalDateTime.parse(parts[4].trim(), EVENT_STORE_FMT);
+        return new Event(description, from, to);
     }
 
     /**

@@ -123,7 +123,10 @@ public class Biscuit {
 
         case "bye":
             return "Bye. Hope to see you again soon!";
-        
+
+        case "within":
+            return handleWithin(args);
+
         case "display":
         case "help":
             return getHelpMessage();
@@ -301,6 +304,7 @@ public class Biscuit {
                 "  todo <description>",
                 "  deadline <description> /by YYYY-MM-DD",
                 "  event <description> /from YYYY-MM-DD HH:mm /to YYYY-MM-DD HH:mm",
+                "  within <description> /from YYYY-MM-DD /to YYYY-MM-DD",
                 "  mark <taskNumber>",
                 "  unmark <taskNumber>",
                 "  delete <taskNumber>",
@@ -320,5 +324,42 @@ public class Biscuit {
             return e.getMessage();
         }
     }
+
+    /**
+     * Handles the {@code within} command by creating and storing a {@link DoWithinPeriodTask}.
+     * <p>
+     * Expected format: {@code within <description> /from YYYY-MM-DD /to YYYY-MM-DD}
+     *
+     * @param args Arguments after the {@code within} keyword.
+     * @return Confirmation message describing the added task.
+     * @throws BiscuitException If the format is invalid or dates cannot be parsed.
+     */
+    private String handleWithin(String args) throws BiscuitException {
+        String[] fromSplit = args.split("\\s+/from\\s+", 2);
+        if (fromSplit.length < 2) {
+            throw new BiscuitException("Usage: within <description> /from YYYY-MM-DD /to YYYY-MM-DD");
+        }
+
+        String description = Parser.requireNonEmpty(fromSplit[0].trim(),
+                "The description of a within-period task cannot be empty.");
+
+        String[] toSplit = fromSplit[1].split("\\s+/to\\s+", 2);
+        if (toSplit.length < 2) {
+            throw new BiscuitException("Usage: within <description> /from YYYY-MM-DD /to YYYY-MM-DD");
+        }
+
+        LocalDate start = Parser.parseDate(toSplit[0].trim(), "start");
+        LocalDate end = Parser.parseDate(toSplit[1].trim(), "end");
+
+        if (end.isBefore(start)) {
+            throw new BiscuitException("End date must be on or after the start date.");
+        }
+
+        DoWithinPeriodTask task = new DoWithinPeriodTask(description, start, end);
+        tasks.add(task);
+        storage.save(tasks.asList());
+        return "Added: " + task;
+    }
+
 
 }

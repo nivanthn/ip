@@ -86,6 +86,22 @@ public class Parser {
     }
 
     /**
+     * Parses a date in {@code yyyy-MM-dd} format.
+     *
+     * @param raw       Raw date string.
+     * @param fieldName Field label used in error messages (e.g. "start", "end").
+     * @return Parsed {@link LocalDate}.
+     * @throws BiscuitException If the date format is invalid.
+     */
+    public static LocalDate parseDate(String raw, String fieldName) throws BiscuitException {
+        try {
+            return LocalDate.parse(raw.trim(), DEADLINE_FMT);
+        } catch (DateTimeParseException e) {
+            throw new BiscuitException("Invalid " + fieldName + " date. Use YYYY-MM-DD (e.g., 2026-01-20).");
+        }
+    }
+
+    /**
      * Parses an event date-time in {@code yyyy-MM-dd HH:mm} format.
      *
      * @param raw       Raw date-time string.

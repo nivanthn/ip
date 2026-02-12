@@ -105,6 +105,10 @@ public class Storage {
             case "E":
                 task = parseEvent(parts, description, line);
                 break;
+            case "P":
+                task = parseDoWithin(parts, description, line);
+                break;
+
             default:
                 throw new BiscuitException("Unknown task type in data: " + type);
         }
@@ -114,6 +118,16 @@ public class Storage {
         }
         return task;
     }
+
+    private static Task parseDoWithin(String[] parts, String description, String line) throws BiscuitException {
+        if (parts.length < 5) {
+            throw new BiscuitException("Corrupted period line: " + line);
+        }
+        LocalDate start = LocalDate.parse(parts[3].trim(), DEADLINE_STORE_FMT);
+        LocalDate end = LocalDate.parse(parts[4].trim(), DEADLINE_STORE_FMT);
+        return new DoWithinPeriodTask(description, start, end);
+    }
+
 
     private static Task parseTodo(String description) {
         return new Todo(description);
@@ -178,6 +192,12 @@ public class Storage {
             return String.join("\t", "E", done, description, 
                     e.getFrom().format(EVENT_STORE_FMT),
                     e.getTo().format(EVENT_STORE_FMT));
+        } 
+        if (task instanceof DoWithinPeriodTask) {
+            DoWithinPeriodTask p = (DoWithinPeriodTask) task;
+            return String.join("\t", "P", done, description,
+                    p.getStart().format(DEADLINE_STORE_FMT),
+                    p.getEnd().format(DEADLINE_STORE_FMT));
         }
 
         throw new BiscuitException("Unsupported task type: " + task.getClass().getSimpleName());

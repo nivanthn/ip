@@ -25,7 +25,7 @@ public class Main extends Application {
             fxmlLoader.<MainWindow>getController().setBiscuit(biscuit); // inject the Biscuit instance
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalStateException("Failed to load /view/MainWindow.fxml", e);
         }
     }
 }

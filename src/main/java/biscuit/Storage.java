@@ -66,10 +66,13 @@ public class Storage {
      * @throws BiscuitException If the data file cannot be written.
      */
     public void save(List<Task> tasks) throws BiscuitException {
-        try (BufferedWriter writer = Files.newBufferedWriter(DATA_PATH, StandardCharsets.UTF_8)) {
-            for (Task task : tasks) {
-                writer.write(serializeTask(task));
-                writer.newLine();
+        try {
+            Files.createDirectories(DATA_PATH.getParent());
+            try (BufferedWriter writer = Files.newBufferedWriter(DATA_PATH, StandardCharsets.UTF_8)) {
+                for (Task task : tasks) {
+                    writer.write(serializeTask(task));
+                    writer.newLine();
+                }
             }
         } catch (IOException e) {
             throw new BiscuitException("Failed to save data file: " + DATA_PATH);

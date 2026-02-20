@@ -47,3 +47,20 @@ Generate JavaDoc comments for most of the methods
 
 **Estimated time saved:**
 - Manual cleanup estimate: ~1–2 hours.
+
+## 2026-02-20 — README.md Help with Generating
+
+**Tool used:** ChatGPT
+
+**Goal / Increment:**  
+Fix and add details to the README.md I originally edited
+
+**What worked well:**
+- Fast application of Github Flavoured Markdown
+- Helpful at applying consistent conventions across the file.
+
+**What didn’t / required care:**
+- Some of the descriptions were incorrect
+
+**Estimated time saved:**
+- Manual cleanup estimate: 1 hour.
